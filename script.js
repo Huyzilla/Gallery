@@ -12,9 +12,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePassword = document.getElementById('togglePassword');
     
     let selectedCategory = null;
-    let selectedImageSrc = null;
     let isPasswordVisible = false;
-    
+
+    // Function to check if we're running on Netlify
+    function isNetlify() {
+        return window.location.hostname.includes('netlify.app');
+    }
+
+    // Function to get the correct base path
+    function getBasePath() {
+        return isNetlify() ? '' : '';
+    }
+
     // Background effects
     function createSparkles() {
         const sparklesContainer = document.querySelector('.sparkles');
@@ -71,20 +80,30 @@ document.addEventListener('DOMContentLoaded', () => {
         gallery.style.display = 'grid';
         gallery.innerHTML = '';
         
-        fetch(`/images/${category}`)
-            .then(response => response.text())
+        // Get the list of images from the directory
+        fetch(`${getBasePath()}/images/${category}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load images');
+                }
+                return response.text();
+            })
             .then(html => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const links = Array.from(doc.querySelectorAll('a'))
                     .filter(a => {
                         const href = a.getAttribute('href');
-                        return href.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                        return href && href.match(/\.(jpg|jpeg|png|gif|webp)$/i);
                     })
                     .map(a => a.getAttribute('href'));
 
+                if (links.length === 0) {
+                    throw new Error('No images found');
+                }
+
                 links.forEach(href => {
-                    const fullPath = `/images/${category}/${href}`;
+                    const fullPath = `${getBasePath()}/images/${category}/${href}`;
                     const imageElement = createImageElement(fullPath, category);
                     gallery.appendChild(imageElement);
 
@@ -94,14 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         imageElement.style.transform = 'translateY(0)';
                     }, delay);
                 });
-
-                if (links.length === 0) {
-                    gallery.innerHTML = '<p style="text-align: center; color: #fff; font-size: 1.2rem;">No images found in this category</p>';
-                }
             })
             .catch(error => {
                 console.error('Error loading images:', error);
-                gallery.innerHTML = '<p style="text-align: center; color: #fff; font-size: 1.2rem;">Error loading images</p>';
+                gallery.innerHTML = '<p style="text-align: center; color: #fff; font-size: 1.2rem;">No images found in this category</p>';
             });
     }
 
@@ -275,60 +290,57 @@ document.addEventListener('DOMContentLoaded', () => {
         togglePassword.querySelector('i').className = 'fas fa-eye';
     }
 
-    // Initially hide the gallery
-    gallery.style.display = 'none';
-
     // Music Player
     const playlist = [
         {
             title: 'A Thousand Years',
             artist: 'Christina Perri',
-            file: 'music/A Thousand Years.mp3'
+            file: `${getBasePath()}/music/A Thousand Years.mp3`
         },
         {
             title: 'Canon in D',
             artist: 'Johann Pachelbel',
-            file: 'music/Canon in D.mp3'
+            file: `${getBasePath()}/music/Canon in D.mp3`
         },
         {
             title: 'Kiss The Rain',
             artist: 'Yiruma',
-            file: 'music/Kiss The Rain.mp3'
+            file: `${getBasePath()}/music/Kiss The Rain.mp3`
         },
         {
             title: 'River Flows in You',
             artist: 'Yiruma',
-            file: 'music/River Flows in You.mp3'
+            file: `${getBasePath()}/music/River Flows in You.mp3`
         },
         {
             title: 'No Surprises',
             artist: 'Yiruma',
-            file: 'music/No Surprises.mp3'
+            file: `${getBasePath()}/music/No Surprises.mp3`
         },
         {
             title: 'About You',
             artist: 'The 1975',
-            file: 'music/About You - The 1975.mp3'
+            file: `${getBasePath()}/music/About You - The 1975.mp3`
         },
         {
             title: 'Photograph',
             artist: 'Ed Sheeran',
-            file: 'music/Photograph.mp3'
+            file: `${getBasePath()}/music/Photograph.mp3`
         },
         {
             title: 'Giấc mơ',
             artist: 'Tùng',
-            file: 'music/Giấc mơ.mp3'
+            file: `${getBasePath()}/music/Giấc mơ.mp3`
         },
         {
             title: 'Đoạn kết',
             artist: 'Em Ellata',
-            file: 'music/Đoạn kết.mp3'
+            file: `${getBasePath()}/music/Đoạn kết.mp3`
         },
         {
             title: 'Everything will be okay',
             artist: 'HIEUTHUHAI',
-            file: 'music/Everything will be okay.mp3'
+            file: `${getBasePath()}/music/Everything will be okay.mp3`
         }
     ];
 
@@ -355,11 +367,17 @@ document.addEventListener('DOMContentLoaded', () => {
         artistName.textContent = track.artist;
         
         // Always try to play when loading a track
-        audio.play().catch(error => {
-            console.error('Error playing audio:', error);
-            isPlaying = false;
-            updatePlayButton();
-        });
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                isPlaying = true;
+                updatePlayButton();
+            }).catch(error => {
+                console.error('Error playing audio:', error);
+                isPlaying = false;
+                updatePlayButton();
+            });
+        }
     }
 
     function updatePlayButton() {
@@ -435,8 +453,20 @@ document.addEventListener('DOMContentLoaded', () => {
         durationSpan.textContent = formatTime(audio.duration);
     });
 
-    // Start playing automatically when the page loads
-    loadTrack(0);
-    isPlaying = true;
-    updatePlayButton();
+    // Initialize music player with autoplay
+    window.addEventListener('load', () => {
+        // Try to start playing music
+        loadTrack(0);
+        
+        // Add user interaction listener to start music
+        document.body.addEventListener('click', function startMusic() {
+            if (!isPlaying) {
+                loadTrack(currentTrack);
+            }
+            document.body.removeEventListener('click', startMusic);
+        }, { once: true });
+    });
+
+    // Initially hide the gallery
+    gallery.style.display = 'none';
 });

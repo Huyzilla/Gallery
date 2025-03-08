@@ -1,0 +1,20 @@
+[build]
+  publish = "/"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/music/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+
+[dev]
+  framework = "#static"
