@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Người giữ kỷ niệm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="sparkles"></div>
+        <div class="falling-items"></div>
+    </div>
+    
+    <div class="container">
+        <h1 class="main-title">Photo Gallery</h1>
+        <div class="welcome-section">
+            <h1>Chào mừng bạn đến với không gian kỷ niệm của Trần Quang Huy</h1>
+            <p class="welcome-text">
+                Nơi lưu giữ những khoảnh khắc đáng nhớ của gia đình, người thân và những người quan trọng nhất. Mỗi bức ảnh ở đây không chỉ là hình ảnh, mà còn là câu chuyện, là tình cảm, là những khoảnh khắc không thể quên. Hy vọng bạn sẽ cảm nhận được những điều tuyệt vời mà mình đã trân trọng!👣
+            </p>
+        </div>
+
+        <!-- Music Player -->
+        <div class="music-player">
+            <div class="music-info">
+                <h3 id="songTitle">A Thousand Years</h3>
+                <p id="artist">Christina Perri</p>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress"></div>
+                </div>
+                <div class="time-info">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="prevBtn" class="control-btn"><i class="fas fa-backward"></i></button>
+                <button id="playBtn" class="control-btn"><i class="fas fa-play"></i></button>
+                <button id="nextBtn" class="control-btn"><i class="fas fa-forward"></i></button>
+                <div class="volume-container">
+                    <i class="fas fa-volume-up"></i>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-nav">
+            <button class="nav-btn" data-category="Me">Me</button>
+            <button class="nav-btn" data-category="lover">Lover</button>
+            <button class="nav-btn" data-category="Relatives">Relatives</button>
+            <button class="nav-btn" data-category="Undergraduate & Graduate">Graduate</button>
+        </div>
+        <div class="gallery" id="gallery"></div>
+    </div>
+
+    <!-- Password Modal -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-content">
+            <h2>Enter Password</h2>
+            <p class="folder-name"></p>
+            <div class="password-input-container">
+                <input type="password" id="passwordInput" placeholder="Enter password">
+                <button id="togglePassword" class="toggle-password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <button id="submitPassword">View Photos</button>
+            <p id="passwordError" class="error-message"></p>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <span class="close">&times;</span>
+        <div class="zoom-container">
+            <img class="modal-content" id="modalImage">
+        </div>
+        <div class="zoom-controls">
+            <button id="zoomIn">+</button>
+            <button id="zoomOut">-</button>
+            <button id="resetZoom">Reset</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
