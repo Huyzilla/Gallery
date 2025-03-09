@@ -9,28 +9,26 @@
   force = false  # Don't force redirect for existing files
 
 [[headers]]
-  for = "/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, OPTIONS"
-    Cache-Control = "public, max-age=0, must-revalidate"
-
-[[headers]]
   for = "/images/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-    Access-Control-Allow-Origin = "*"
 
 [[headers]]
   for = "/music/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
     Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"
+
+[build.processing]
+  skip_processing = false
+  [build.processing.images]
+    compress = true
 
 [dev]
   framework = "#static"
-  
-[build.processing]
-  skip_processing = false
-[build.processing.images]
-  compress = true

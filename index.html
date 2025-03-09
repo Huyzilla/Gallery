@@ -23,19 +23,13 @@
         </div>
 
         <!-- Music Player -->
+        <audio id="bgMusic" autoplay preload="auto" muted>
+            <source src="music/A Thousand Years.mp3" type="audio/mp3">
+        </audio>
         <div class="music-player">
             <div class="music-info">
                 <h3 id="songTitle">A Thousand Years</h3>
                 <p id="artist">Christina Perri</p>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress"></div>
-                </div>
-                <div class="time-info">
-                    <span id="currentTime">0:00</span>
-                    <span id="duration">0:00</span>
-                </div>
             </div>
             <div class="controls">
                 <button id="prevBtn" class="control-btn"><i class="fas fa-backward"></i></button>
@@ -44,6 +38,15 @@
                 <div class="volume-container">
                     <i class="fas fa-volume-up"></i>
                     <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress"></div>
+                </div>
+                <div class="time-info">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
                 </div>
             </div>
         </div>

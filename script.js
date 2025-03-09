@@ -80,28 +80,41 @@ document.addEventListener('DOMContentLoaded', () => {
         gallery.style.display = 'grid';
         gallery.innerHTML = '';
 
-        // Fetch the list of images from the directory
-        fetch(`${getBasePath()}/images/${category}/`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load images');
-                }
-                return response.text();
-            })
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const links = Array.from(doc.querySelectorAll('a'))
-                    .map(a => a.getAttribute('href'))
-                    .filter(href => href.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+        // Define the base number for each category
+        const categoryBase = {
+            'Me': 1,
+            'lover': 2,
+            'Relatives': 3,
+            'Undergraduate & Graduate': 4
+        };
 
-                if (links.length === 0) {
+        const baseNumber = categoryBase[category];
+        const imagePromises = [];
+
+        // Try to load images with names like 1 (1).jpg, 1 (2).jpg, etc.
+        for (let i = 1; i <= 340; i++) {
+            const imgPath = `${getBasePath()}/images/${category}/${baseNumber} (${i}).jpg`;
+            const img = document.createElement('img');
+            img.src = imgPath;
+
+            const promise = new Promise((resolve) => {
+                img.onload = () => resolve(imgPath);
+                img.onerror = () => resolve(null);
+            });
+            imagePromises.push(promise);
+        }
+
+        // Wait for all image load attempts and display the successful ones
+        Promise.all(imagePromises)
+            .then(paths => {
+                const validPaths = paths.filter(path => path !== null);
+
+                if (validPaths.length === 0) {
                     throw new Error('No images found');
                 }
 
-                links.forEach(href => {
-                    const fullPath = `${getBasePath()}/images/${category}/${href}`;
-                    const imageElement = createImageElement(fullPath, category);
+                validPaths.forEach(path => {
+                    const imageElement = createImageElement(path, category);
                     gallery.appendChild(imageElement);
 
                     const delay = gallery.children.length * 100;
@@ -342,8 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     let currentTrack = 0;
-    let isPlaying = false;
-    const audio = new Audio();
+    let isPlaying = true;
+    const audio = document.getElementById('bgMusic');
     audio.volume = 0.5;
 
     // Music Player Elements
@@ -363,16 +376,22 @@ document.addEventListener('DOMContentLoaded', () => {
         songTitle.textContent = track.title;
         artistName.textContent = track.artist;
         
-        // Always try to play when loading a track
+        // Force play and unmute
+        audio.muted = false;
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-            playPromise.then(() => {
-                isPlaying = true;
-                updatePlayButton();
-            }).catch(error => {
-                console.error('Error playing audio:', error);
-                isPlaying = false;
-                updatePlayButton();
+            playPromise.catch(() => {
+                // If autoplay is blocked, try playing on any interaction
+                const playOnInteraction = () => {
+                    audio.muted = false;
+                    audio.play().then(() => {
+                        isPlaying = true;
+                        updatePlayButton();
+                    });
+                };
+                document.addEventListener('click', playOnInteraction, { once: true });
+                document.addEventListener('touchstart', playOnInteraction, { once: true });
+                document.addEventListener('keydown', playOnInteraction, { once: true });
             });
         }
     }
@@ -399,15 +418,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners for Music Player
     playBtn.addEventListener('click', () => {
-        if (audio.src) {
-            if (isPlaying) {
-                audio.pause();
-            } else {
-                audio.play();
-            }
-            isPlaying = !isPlaying;
-            updatePlayButton();
+        if (isPlaying) {
+            audio.pause();
+        } else {
+            audio.play();
         }
+        isPlaying = !isPlaying;
+        updatePlayButton();
     });
 
     prevBtn.addEventListener('click', () => {
@@ -431,6 +448,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     audio.addEventListener('timeupdate', updateProgress);
+    
+    // Automatically play next song when current song ends
     audio.addEventListener('ended', () => {
         currentTrack = (currentTrack + 1) % playlist.length;
         loadTrack(currentTrack);
@@ -450,41 +469,16 @@ document.addEventListener('DOMContentLoaded', () => {
         durationSpan.textContent = formatTime(audio.duration);
     });
 
-    // Initialize music player with autoplay
+    // Initialize music player
     function initializeMusic() {
         loadTrack(0);
-        
-        // Try to autoplay with user interaction
-        const startMusic = () => {
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise
-                    .then(() => {
-                        isPlaying = true;
-                        updatePlayButton();
-                    })
-                    .catch(error => {
-                        console.error('Playback failed:', error);
-                        isPlaying = false;
-                        updatePlayButton();
-                    });
-            }
-            
-            ['click', 'touchstart', 'keydown'].forEach(event => {
-                document.removeEventListener(event, startMusic);
-            });
-        };
-        
-        ['click', 'touchstart', 'keydown'].forEach(event => {
-            document.addEventListener(event, startMusic, { once: true });
-        });
     }
 
-    // Start music as soon as possible
+    // Start music immediately when page loads
     if (document.readyState === 'complete') {
         initializeMusic();
     } else {
-        window.addEventListener('load', initializeMusic);
+        window.addEventListener('DOMContentLoaded', initializeMusic);
     }
 
     // Initially hide the gallery
