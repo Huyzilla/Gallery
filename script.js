@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to get the correct base path
     function getBasePath() {
-        return window.location.hostname.includes('netlify.app') ? '' : '';
+        return '.';
     }
 
     // Background effects
@@ -80,8 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gallery.style.display = 'grid';
         gallery.innerHTML = '';
         
-        // Get the list of images from the directory
-        fetch(`${getBasePath()}/images/${category}/index.html`)
+        // Get the list of images directly from the directory
+        fetch(`${getBasePath()}/images/${category}/`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load images');
@@ -99,30 +99,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     .map(a => a.getAttribute('href'));
 
                 if (links.length === 0) {
-                    // Try direct file listing
-                    return fetch(`${getBasePath()}/images/${category}/`)
-                        .then(response => response.text())
-                        .then(directoryHtml => {
-                            const directoryDoc = parser.parseFromString(directoryHtml, 'text/html');
-                            const directoryLinks = Array.from(directoryDoc.querySelectorAll('a'))
-                                .filter(a => {
-                                    const href = a.getAttribute('href');
-                                    return href && /\.(jpg|jpeg|png|gif|webp)$/i.test(href);
-                                })
-                                .map(a => a.getAttribute('href'));
+                    // If no images found through directory listing, try loading known image extensions
+                    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+                    const imagePromises = [];
+                    
+                    imageExtensions.forEach(ext => {
+                        const images = document.createElement('div');
+                        images.innerHTML = '';
+                        
+                        // Try to load all images with index 1-50 for each extension
+                        for (let i = 1; i <= 50; i++) {
+                            const imgPath = `${getBasePath()}/images/${category}/${i}${ext}`;
+                            const img = document.createElement('img');
+                            img.src = imgPath;
                             
-                            if (directoryLinks.length === 0) {
-                                throw new Error('No images found');
-                            }
-                            return directoryLinks;
-                        });
+                            const promise = new Promise((resolve) => {
+                                img.onload = () => resolve(imgPath);
+                                img.onerror = () => resolve(null);
+                            });
+                            imagePromises.push(promise);
+                        }
+                    });
+                    
+                    return Promise.all(imagePromises).then(paths => {
+                        return paths.filter(path => path !== null);
+                    });
                 }
-                return links;
+                
+                return links.map(href => `${getBasePath()}/images/${category}/${href}`);
             })
-            .then(links => {
-                links.forEach(href => {
-                    const fullPath = `${getBasePath()}/images/${category}/${href}`;
-                    const imageElement = createImageElement(fullPath, category);
+            .then(imagePaths => {
+                if (imagePaths.length === 0) {
+                    throw new Error('No images found');
+                }
+                
+                imagePaths.forEach(path => {
+                    const imageElement = createImageElement(path, category);
                     gallery.appendChild(imageElement);
 
                     const delay = gallery.children.length * 100;
@@ -475,23 +487,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeMusic() {
         loadTrack(0);
         
-        // Try to autoplay immediately
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(() => {
-                // If autoplay fails, try after user interaction
-                const startMusic = () => {
-                    audio.play().catch(console.error);
-                    ['click', 'touchstart', 'keydown'].forEach(event => {
-                        document.removeEventListener(event, startMusic);
+        // Try to autoplay with user interaction
+        const startMusic = () => {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        isPlaying = true;
+                        updatePlayButton();
+                    })
+                    .catch(error => {
+                        console.error('Playback failed:', error);
+                        isPlaying = false;
+                        updatePlayButton();
                     });
-                };
-                
-                ['click', 'touchstart', 'keydown'].forEach(event => {
-                    document.addEventListener(event, startMusic, { once: true });
-                });
+            }
+            
+            ['click', 'touchstart', 'keydown'].forEach(event => {
+                document.removeEventListener(event, startMusic);
             });
-        }
+        };
+        
+        ['click', 'touchstart', 'keydown'].forEach(event => {
+            document.addEventListener(event, startMusic, { once: true });
+        });
     }
 
     // Start music as soon as possible
