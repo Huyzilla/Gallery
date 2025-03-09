@@ -308,22 +308,6 @@ h1 {
     color: #ff0055;
 }
 
-/* Password Modal Close Button */
-.close-pwd {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
-    font-weight: bold;
-    color: #666;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.close-pwd:hover {
-    color: #000;
-}
-
 /* Image Modal with Zoom */
 .modal {
     display: none;
