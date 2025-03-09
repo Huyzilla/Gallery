@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to get the correct base path
     function getBasePath() {
-        return isNetlify() ? '' : '';
+        return window.location.hostname.includes('netlify.app') ? '' : '';
     }
 
     // Background effects
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gallery.innerHTML = '';
         
         // Get the list of images from the directory
-        fetch(`${getBasePath()}/images/${category}/`)
+        fetch(`${getBasePath()}/images/${category}/index.html`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load images');
@@ -94,14 +94,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 const links = Array.from(doc.querySelectorAll('a'))
                     .filter(a => {
                         const href = a.getAttribute('href');
-                        return href && href.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                        return href && /\.(jpg|jpeg|png|gif|webp)$/i.test(href);
                     })
                     .map(a => a.getAttribute('href'));
 
                 if (links.length === 0) {
-                    throw new Error('No images found');
+                    // Try direct file listing
+                    return fetch(`${getBasePath()}/images/${category}/`)
+                        .then(response => response.text())
+                        .then(directoryHtml => {
+                            const directoryDoc = parser.parseFromString(directoryHtml, 'text/html');
+                            const directoryLinks = Array.from(directoryDoc.querySelectorAll('a'))
+                                .filter(a => {
+                                    const href = a.getAttribute('href');
+                                    return href && /\.(jpg|jpeg|png|gif|webp)$/i.test(href);
+                                })
+                                .map(a => a.getAttribute('href'));
+                            
+                            if (directoryLinks.length === 0) {
+                                throw new Error('No images found');
+                            }
+                            return directoryLinks;
+                        });
                 }
-
+                return links;
+            })
+            .then(links => {
                 links.forEach(href => {
                     const fullPath = `${getBasePath()}/images/${category}/${href}`;
                     const imageElement = createImageElement(fullPath, category);
@@ -454,18 +472,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize music player with autoplay
-    window.addEventListener('load', () => {
-        // Try to start playing music
+    function initializeMusic() {
         loadTrack(0);
         
-        // Add user interaction listener to start music
-        document.body.addEventListener('click', function startMusic() {
-            if (!isPlaying) {
-                loadTrack(currentTrack);
-            }
-            document.body.removeEventListener('click', startMusic);
-        }, { once: true });
-    });
+        // Try to autoplay immediately
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => {
+                // If autoplay fails, try after user interaction
+                const startMusic = () => {
+                    audio.play().catch(console.error);
+                    ['click', 'touchstart', 'keydown'].forEach(event => {
+                        document.removeEventListener(event, startMusic);
+                    });
+                };
+                
+                ['click', 'touchstart', 'keydown'].forEach(event => {
+                    document.addEventListener(event, startMusic, { once: true });
+                });
+            });
+        }
+    }
+
+    // Start music as soon as possible
+    if (document.readyState === 'complete') {
+        initializeMusic();
+    } else {
+        window.addEventListener('load', initializeMusic);
+    }
 
     // Initially hide the gallery
     gallery.style.display = 'none';
