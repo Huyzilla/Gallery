@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to get the correct base path
     function getBasePath() {
-        return '.';
+        return isNetlify() ? '' : '.';
     }
 
     // Background effects
