@@ -1,17 +1,6 @@
 [build]
   publish = "/"
-
-[[redirects]]
-  from = "/images/*"
-  to = "/images/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/music/*"
-  to = "/music/:splat"
-  status = 200
-  force = true
+  command = "# no build command needed"
 
 [[redirects]]
   from = "/*"
@@ -22,8 +11,18 @@
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET"
+    Access-Control-Allow-Methods = "GET, OPTIONS"
     Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/music/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
 [dev]
   framework = "#static"
