@@ -5,11 +5,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.querySelector('.close');
     const navBtns = document.querySelectorAll('.nav-btn');
     const passwordModal = document.getElementById('passwordModal');
-    const passwordInput = document.getElementById('passwordInput');
+    const passwordInput = document.getElementById('folderPassword');
     const submitPassword = document.getElementById('submitPassword');
     const passwordError = document.getElementById('passwordError');
     const folderNameDisplay = document.querySelector('.folder-name');
     const togglePassword = document.getElementById('togglePassword');
+    const closePasswordBtn = document.querySelector('.close-pwd');
     
     let selectedCategory = null;
     let isPasswordVisible = false;
@@ -190,44 +191,30 @@ document.addEventListener('DOMContentLoaded', () => {
         resetPasswordVisibility();
     }
 
-    function checkFolderPassword() {
-        let correctPassword;
-        
-        switch(selectedCategory) {
-            case 'lover':
-                correctPassword = '30121802';
-                break;
-            case 'Me':
-                correctPassword = '280920032004';
-                break;
-            case 'Relatives':
-                correctPassword = '280726';
-                break;
-            case 'Undergraduate & Graduate':
-                correctPassword = '280904';
-                break;
-            default:
-                correctPassword = '';
-        }
-        
-        if (passwordInput.value === correctPassword) {
-            passwordModal.style.display = 'none';
-            loadImages(selectedCategory);
-            passwordError.style.display = 'none';
-            
-            // Update active button
-            navBtns.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.category === selectedCategory) {
-                    btn.classList.add('active');
-                }
-            });
-        } else {
-            passwordError.textContent = 'Incorrect password';
-            passwordError.style.display = 'block';
-            passwordInput.value = '';
-        }
+    function closePasswordModal() {
+        passwordModal.style.display = 'none';
+        passwordInput.value = '';
+        passwordError.style.display = 'none';
+        resetPasswordVisibility();
+        selectedCategory = null;
     }
+
+    // Close password modal when clicking the X button
+    closePasswordBtn.addEventListener('click', closePasswordModal);
+
+    // Close password modal when clicking outside
+    window.addEventListener('click', (e) => {
+        if (e.target === passwordModal) {
+            closePasswordModal();
+        }
+    });
+
+    // Handle Escape key to close password modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && passwordModal.style.display === 'block') {
+            closePasswordModal();
+        }
+    });
 
     // Modal functionality
     function openModal(imgSrc) {
@@ -264,8 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeModal();
-            passwordModal.style.display = 'none';
-            resetPasswordVisibility();
+            closePasswordModal();
         }
     });
 
@@ -277,10 +263,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle password submission
-    submitPassword.addEventListener('click', checkFolderPassword);
-    passwordInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-            checkFolderPassword();
+    submitPassword.addEventListener('click', () => {
+        let correctPassword;
+        
+        switch(selectedCategory) {
+            case 'lover':
+                correctPassword = '30121802';
+                break;
+            case 'Me':
+                correctPassword = '280920032004';
+                break;
+            case 'Relatives':
+                correctPassword = '280726';
+                break;
+            case 'Undergraduate & Graduate':
+                correctPassword = '280904';
+                break;
+            default:
+                correctPassword = '';
+        }
+        
+        if (passwordInput.value === correctPassword) {
+            closePasswordModal();
+            loadImages(selectedCategory);
+        } else {
+            passwordError.textContent = 'Incorrect password';
+            passwordError.style.display = 'block';
+            passwordInput.value = '';
         }
     });
 
