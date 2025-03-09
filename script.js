@@ -190,6 +190,17 @@ document.addEventListener('DOMContentLoaded', () => {
         resetPasswordVisibility();
     }
 
+    // Close password modal when clicking outside
+    passwordModal.addEventListener('click', (e) => {
+        // Check if the click is outside the password modal content
+        if (e.target === passwordModal) {
+            passwordModal.style.display = 'none';
+            passwordInput.value = '';
+            passwordError.style.display = 'none';
+            resetPasswordVisibility();
+        }
+    });
+
     function checkFolderPassword() {
         let correctPassword;
         
