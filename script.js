@@ -79,8 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadImages(category) {
         gallery.style.display = 'grid';
         gallery.innerHTML = '';
-        
-        // Get the list of images directly from the directory
+
+        // Fetch the list of images from the directory
         fetch(`${getBasePath()}/images/${category}/`)
             .then(response => {
                 if (!response.ok) {
@@ -92,49 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const links = Array.from(doc.querySelectorAll('a'))
-                    .filter(a => {
-                        const href = a.getAttribute('href');
-                        return href && /\.(jpg|jpeg|png|gif|webp)$/i.test(href);
-                    })
-                    .map(a => a.getAttribute('href'));
+                    .map(a => a.getAttribute('href'))
+                    .filter(href => href.match(/\.(jpg|jpeg|png|gif|webp)$/i));
 
                 if (links.length === 0) {
-                    // If no images found through directory listing, try loading known image extensions
-                    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-                    const imagePromises = [];
-                    
-                    imageExtensions.forEach(ext => {
-                        const images = document.createElement('div');
-                        images.innerHTML = '';
-                        
-                        // Try to load all images with index 1-50 for each extension
-                        for (let i = 1; i <= 50; i++) {
-                            const imgPath = `${getBasePath()}/images/${category}/${i}${ext}`;
-                            const img = document.createElement('img');
-                            img.src = imgPath;
-                            
-                            const promise = new Promise((resolve) => {
-                                img.onload = () => resolve(imgPath);
-                                img.onerror = () => resolve(null);
-                            });
-                            imagePromises.push(promise);
-                        }
-                    });
-                    
-                    return Promise.all(imagePromises).then(paths => {
-                        return paths.filter(path => path !== null);
-                    });
-                }
-                
-                return links.map(href => `${getBasePath()}/images/${category}/${href}`);
-            })
-            .then(imagePaths => {
-                if (imagePaths.length === 0) {
                     throw new Error('No images found');
                 }
-                
-                imagePaths.forEach(path => {
-                    const imageElement = createImageElement(path, category);
+
+                links.forEach(href => {
+                    const fullPath = `${getBasePath()}/images/${category}/${href}`;
+                    const imageElement = createImageElement(fullPath, category);
                     gallery.appendChild(imageElement);
 
                     const delay = gallery.children.length * 100;

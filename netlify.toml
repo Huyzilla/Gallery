@@ -6,6 +6,7 @@
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false  # Don't force redirect for existing files
 
 [[headers]]
   for = "/*"
@@ -18,11 +19,18 @@
   for = "/images/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
 
 [[headers]]
   for = "/music/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
 
 [dev]
   framework = "#static"
+  
+[build.processing]
+  skip_processing = false
+[build.processing.images]
+  compress = true
