@@ -319,6 +319,16 @@ document.addEventListener('DOMContentLoaded', () => {
             file: `${getBasePath()}/music/A Thousand Years.mp3`
         },
         {
+            title: 'My Love Mine All Mine',
+            artist: 'Mitski',
+            file: `${getBasePath()}/music/My Love Mine All Mine.mp3`
+        },
+        {
+            title: 'Blue',
+            artist: 'Yung Kai',
+            file: `${getBasePath()}/music/Blue.mp3`
+        },
+        {
             title: 'Canon in D',
             artist: 'Johann Pachelbel',
             file: `${getBasePath()}/music/Canon in D.mp3`
@@ -342,6 +352,11 @@ document.addEventListener('DOMContentLoaded', () => {
             title: 'About You',
             artist: 'The 1975',
             file: `${getBasePath()}/music/About You - The 1975.mp3`
+        },
+        {
+            title: 'A Piece Of You',
+            artist: 'Nathaniel Constantin',
+            file: `${getBasePath()}/music/A Piece Of You.mp3`
         },
         {
             title: 'Photograph',
