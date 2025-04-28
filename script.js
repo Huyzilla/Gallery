@@ -206,10 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         switch(selectedCategory) {
             case 'lover':
-                correctPassword = '30121802';
+                correctPassword = 'emlaai';
                 break;
             case 'Me':
-                correctPassword = '280920032004';
+                correctPassword = '28092004';
                 break;
             case 'Relatives':
                 correctPassword = '280726';
